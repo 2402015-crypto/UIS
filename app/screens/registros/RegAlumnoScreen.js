@@ -1,13 +1,15 @@
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Portal, Snackbar, Text, TextInput } from 'react-native-paper';
 import { colors } from '../../../styles/colors';
+import { AuthContext } from '../../components/context/AuthContext';
 
 export default function RegAlumnoScreen() {
   const navigation = useNavigation();
+  const { registerUser, carreras } = useContext(AuthContext);
 
   // Estados para los campos
   const [nombre, setNombre] = useState('');
@@ -40,15 +42,31 @@ export default function RegAlumnoScreen() {
     if (!matricula) e.matricula = 'Ingresa tu matricula';
     if (!grupo) e.grupo = 'Ingresa tu grupo';
     if (!cuatrimestre) e.cuatrimestre = 'Selecciona tu cuatrimestre';
-    if (!carrera) e.carrera = 'Ingresa tu carrera';
+    if (!carrera) e.carrera = 'Selecciona tu carrera';
     if (!password) e.password = 'Ingresa tu contrasena';
     if (password !== confirmar) e.confirmar = 'Las contrasenas no coinciden';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!validate()) return;
+
+    const result = await registerUser({
+      nombre,
+      correo,
+      matricula,
+      grupo,
+      cuatrimestre,
+      carrera,
+      password,
+      role: 'alumno',
+    });
+
+    if (!result.ok) {
+      setErrors({ correo: result.error });
+      return;
+    }
 
     setSnackbarVisible(false);
     if (snackbarTimer.current) {
@@ -158,9 +176,9 @@ export default function RegAlumnoScreen() {
             dropdownIconColor={colors.textPlaceholder}
           >
             <Picker.Item label="Selecciona una opcion" value="" />
-            <Picker.Item label="Ingenieria en Software" value="software" />
-            <Picker.Item label="Gastronomia" value="gastronomia" />
-            <Picker.Item label="Contaduria" value="contaduria" />
+            {carreras.map((item) => (
+              <Picker.Item key={item.codigo} label={item.nombre} value={item.codigo} />
+            ))}
           </Picker>
         </View>
         {errors.carrera && <Text style={styles.error}>{errors.carrera}</Text>}

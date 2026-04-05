@@ -4,10 +4,13 @@ import { useContext } from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
 
 import { AuthContext, AuthProvider } from './app/components/context/AuthContext';
-import HomeScreen from './app/screens/home/HomeScreen';
+import AlumnoNavigation from './app/screens/alumno_navigation'; // tabs del alumno
+import HomeScreen from './app/screens/home/HomeScreen'; // reservado para admin
 import LoginScreen from './app/screens/login/LoginScreen';
 import RegAlumnoScreen from './app/screens/registros/RegAlumnoScreen';
 import RegMaestroScreen from './app/screens/registros/RegMaestroScreen';
+// import MaestroNavigation from './app/screens/maestro_navigation'; // si lo agregas
+
 import { colors } from './styles/colors';
 
 const Stack = createStackNavigator();
@@ -36,8 +39,12 @@ function AppNavigator() {
           <Stack.Screen name="RegAlumno" component={RegAlumnoScreen} />
           <Stack.Screen name="RegMaestro" component={RegMaestroScreen} />
         </>
+      ) : user.role === 'admin' ? (
+        <Stack.Screen name="Admin" component={HomeScreen} />
+      ) : user.role === 'alumno' ? (
+        <Stack.Screen name="Alumno" component={AlumnoNavigation} />
       ) : (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Maestro" component={MaestroNavigation} />
       )}
     </Stack.Navigator>
   );

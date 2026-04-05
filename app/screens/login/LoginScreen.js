@@ -39,11 +39,8 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      if (correo === 'admin@ius.mx' && password === '1234') {
-        login(correo);
-      } else {
-        setErrors({ password: 'Credenciales incorrectas' });
-      }
+      const result = await login(correo, password);
+      if (!result.ok) setErrors({ password: result.error });
     } catch (err) {
       setErrors({ password: 'Error al iniciar sesion' });
     } finally {
