@@ -2,6 +2,28 @@ import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabaseSync('uis.db');
 
+function normalizeValue(value) {
+  if (value == null) return '';
+  return String(value).trim();
+}
+
+async function resolveUserByName(nombre) {
+  const normalizedNombre = normalizeValue(nombre);
+
+  if (!normalizedNombre) {
+    return null;
+  }
+
+  return db.getFirstAsync(
+    `SELECT id
+     FROM usuarios
+     WHERE LOWER(TRIM(nombre)) = LOWER(TRIM(?))
+     ORDER BY id ASC
+     LIMIT 1;`,
+    [normalizedNombre]
+  );
+}
+
 function safeJsonParse(text, fallback) {
   try {
     return JSON.parse(text);
@@ -32,10 +54,15 @@ export async function initAdminContentDb() {
       titulo TEXT NOT NULL,
       descripcion TEXT NOT NULL,
       autor TEXT NOT NULL,
+      autor_id INTEGER,
+      autor_legacy TEXT,
       categoria TEXT NOT NULL CHECK(categoria IN ('academico','administrativo','evento','urgente')),
       fecha TEXT NOT NULL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(autor_id) REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS postulaciones_practicas (
@@ -48,6 +75,30 @@ export async function initAdminContentDb() {
       FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
     );
   `);
+
+  const avisosColumns = await db.getAllAsync('PRAGMA table_info(avisos);');
+  const avisosColumnNames = new Set((avisosColumns || []).map((column) => column.name));
+
+  if (!avisosColumnNames.has('autor_id')) {
+    await db.execAsync('ALTER TABLE avisos ADD COLUMN autor_id INTEGER;');
+  }
+
+  if (!avisosColumnNames.has('autor_legacy')) {
+    await db.execAsync('ALTER TABLE avisos ADD COLUMN autor_legacy TEXT;');
+  }
+
+  await db.runAsync(
+    `UPDATE avisos
+     SET autor_legacy = COALESCE(NULLIF(TRIM(autor_legacy), ''), autor),
+         autor_id = COALESCE(
+           autor_id,
+           (SELECT u.id
+            FROM usuarios u
+            WHERE LOWER(TRIM(u.nombre)) = LOWER(TRIM(avisos.autor))
+            ORDER BY u.id ASC
+            LIMIT 1)
+         );`
+  );
 }
 
 export async function getPracticasForAdmin() {
@@ -194,31 +245,48 @@ export async function getPracticasCount() {
 
 export async function getAvisos() {
   return db.getAllAsync(
-    `SELECT id, titulo, descripcion, autor, categoria, fecha
-     FROM avisos
-     ORDER BY id DESC;`
+    `SELECT
+       a.id,
+       a.titulo,
+       a.descripcion,
+       COALESCE(u.nombre, NULLIF(TRIM(a.autor_legacy), ''), a.autor) AS autor,
+       a.categoria,
+       a.fecha,
+       a.autor_id,
+       a.autor_legacy
+     FROM avisos a
+     LEFT JOIN usuarios u ON u.id = a.autor_id
+     ORDER BY a.id DESC;`
   );
 }
 
 export async function createAviso({ titulo, descripcion, autor, categoria, fecha }) {
+  const autorNombre = normalizeValue(autor);
+  const autorRow = await resolveUserByName(autorNombre);
+
   await db.runAsync(
-    `INSERT INTO avisos (titulo, descripcion, autor, categoria, fecha)
-     VALUES (?, ?, ?, ?, ?);`,
-    [titulo, descripcion, autor, categoria, fecha]
+    `INSERT INTO avisos (titulo, descripcion, autor, autor_id, autor_legacy, categoria, fecha)
+     VALUES (?, ?, ?, ?, ?, ?, ?);`,
+    [titulo, descripcion, autorNombre, autorRow?.id ?? null, autorNombre, categoria, fecha]
   );
 }
 
 export async function updateAviso(id, { titulo, descripcion, autor, categoria, fecha }) {
+  const autorNombre = normalizeValue(autor);
+  const autorRow = await resolveUserByName(autorNombre);
+
   await db.runAsync(
     `UPDATE avisos
      SET titulo = ?,
          descripcion = ?,
          autor = ?,
+         autor_id = ?,
+         autor_legacy = ?,
          categoria = ?,
          fecha = ?,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = ?;`,
-    [titulo, descripcion, autor, categoria, fecha, id]
+    [titulo, descripcion, autorNombre, autorRow?.id ?? null, autorNombre, categoria, fecha, id]
   );
 }
 
@@ -233,9 +301,14 @@ export async function getAvisosCount() {
 
 export async function getRecentAvisos(limit = 4) {
   return db.getAllAsync(
-    `SELECT id, titulo, categoria
-     FROM avisos
-     ORDER BY id DESC
+    `SELECT
+       a.id,
+       a.titulo,
+       a.categoria,
+       COALESCE(u.nombre, NULLIF(TRIM(a.autor_legacy), ''), a.autor) AS autor
+     FROM avisos a
+     LEFT JOIN usuarios u ON u.id = a.autor_id
+     ORDER BY a.id DESC
      LIMIT ?;`,
     [limit]
   );

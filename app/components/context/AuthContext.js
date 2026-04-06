@@ -8,6 +8,7 @@ import {
   userExistsByCorreo,
 } from '../../services/authDb';
 import { initAdminContentDb } from '../../services/adminContentDb';
+import { initAttendanceDb } from '../../services/attendanceDb';
 import { initGradesDb } from '../../services/gradesDb';
 import { initScheduleDb } from '../../services/scheduleDb';
 
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }) => {
       try {
         await initAuthDb();
         await initAdminContentDb();
+        await initAttendanceDb();
         await initGradesDb();
         await initScheduleDb();
         await ensureDefaultAdmin();
@@ -53,9 +55,13 @@ export const AuthProvider = ({ children }) => {
       correo: foundUser.correo,
       matricula: foundUser.matricula,
       grupo: foundUser.grupo,
+        grupoId: foundUser.grupo_id || foundUser.grupo,
       cuatrimestre: foundUser.cuatrimestre,
       carrera: foundUser.carrera,
+        carreraCodigo: foundUser.carrera_codigo || foundUser.carrera,
       carreraNombre: foundUser.carreraNombre,
+        aula: foundUser.aula,
+        aulaCodigo: foundUser.aula_codigo || foundUser.aula,
       role: foundUser.role,
     });
     return { ok: true };

@@ -13,9 +13,38 @@ export async function initAttendanceDb() {
       estado TEXT NOT NULL CHECK(estado IN ('presente', 'retardo', 'ausente')),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (maestro_id) REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+      FOREIGN KEY (alumno_id) REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+      FOREIGN KEY (grupo_id) REFERENCES grupos(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
       UNIQUE (maestro_id, grupo_id, alumno_id, fecha)
     );
   `);
+
+  const groups = await db.getAllAsync(
+    `SELECT DISTINCT TRIM(grupo_id) AS grupo
+     FROM asistencias_maestro
+     WHERE grupo_id IS NOT NULL AND TRIM(grupo_id) <> ''
+     ORDER BY grupo ASC;`
+  );
+
+  for (const item of groups || []) {
+    if (!item?.grupo) {
+      continue;
+    }
+
+    await db.runAsync(
+      `INSERT INTO grupos (id, nombre)
+       VALUES (?, ?)
+       ON CONFLICT(id) DO UPDATE SET nombre = excluded.nombre;`,
+      [item.grupo, item.grupo]
+    );
+  }
 }
 
 export async function getAttendanceByGroupAndDate(maestroId, grupoId, fecha) {

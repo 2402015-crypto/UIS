@@ -14,9 +14,38 @@ export async function initGradesDb() {
       unidad3 REAL,
       promedio REAL,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (maestro_id) REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+      FOREIGN KEY (alumno_id) REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+      FOREIGN KEY (grupo_id) REFERENCES grupos(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
       UNIQUE(maestro_id, grupo_id, alumno_id)
     );
   `);
+
+  const groups = await db.getAllAsync(
+    `SELECT DISTINCT TRIM(grupo_id) AS grupo
+     FROM calificaciones_maestro
+     WHERE grupo_id IS NOT NULL AND TRIM(grupo_id) <> ''
+     ORDER BY grupo ASC;`
+  );
+
+  for (const item of groups || []) {
+    if (!item?.grupo) {
+      continue;
+    }
+
+    await db.runAsync(
+      `INSERT INTO grupos (id, nombre)
+       VALUES (?, ?)
+       ON CONFLICT(id) DO UPDATE SET nombre = excluded.nombre;`,
+      [item.grupo, item.grupo]
+    );
+  }
 }
 
 export async function getGradesByGroup(maestroId, grupoId) {
