@@ -1,6 +1,7 @@
+import * as SplashScreen from 'expo-splash-screen';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
 
 import { AuthContext, AuthProvider } from './app/components/context/AuthContext';
@@ -10,11 +11,14 @@ import RecoverPasswordScreen from './app/screens/login/RecoverPasswordScreen';
 import MaestroNavigation from './app/screens/maestro_navigation';
 import RegAlumnoScreen from './app/screens/registros/RegAlumnoScreen';
 import RegMaestroScreen from './app/screens/registros/RegMaestroScreen';
+import StartupScreen from './app/screens/startup/StartupScreen';
 import ServiciosENavigation from './app/screens/ServiciosE_navigation';
 
 import { colors } from './styles/colors';
 
 const Stack = createStackNavigator();
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const navTheme = {
   ...DefaultTheme,
@@ -25,7 +29,24 @@ const navTheme = {
 };
 
 function AppNavigator() {
-  const { user } = useContext(AuthContext);
+  const { user, authReady } = useContext(AuthContext);
+  const [startupVisible, setStartupVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStartupVisible(false);
+    }, 3500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
+  if (!authReady || startupVisible) {
+    return <StartupScreen />;
+  }
 
   return (
     <Stack.Navigator
