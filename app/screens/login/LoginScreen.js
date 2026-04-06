@@ -28,8 +28,8 @@ export default function LoginScreen() {
   const validate = () => {
     const e = {};
     if (!correo) e.correo = 'Ingresa tu correo';
-    else if (!/^\S+@\S+\.\S+$/.test(correo)) e.correo = 'Correo invalido';
-    if (!password) e.password = 'Ingresa tu contrasena';
+    else if (!/^\S+@\S+\.\S+$/.test(correo)) e.correo = 'Correo inválido';
+    if (!password) e.password = 'Ingresa tu contraseña';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -42,7 +42,7 @@ export default function LoginScreen() {
       const result = await login(correo, password);
       if (!result.ok) setErrors({ password: result.error });
     } catch (err) {
-      setErrors({ password: 'Error al iniciar sesion' });
+      setErrors({ password: 'Error al iniciar sesión' });
     } finally {
       setLoading(false);
     }
@@ -66,11 +66,11 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.inic}>Iniciar Sesion</Text>
+            <Text style={styles.inic}>Iniciar Sesión</Text>
             <Text style={styles.sub2}>Ingresa tus credenciales para continuar</Text>
 
             <View style={styles.form}>
-              <Text style={styles.fieldLabel}>Correo Electronico</Text>
+              <Text style={styles.fieldLabel}>Correo Electrónico</Text>
               <TextInput
                 value={correo}
                 onChangeText={setCorreo}
@@ -97,16 +97,20 @@ export default function LoginScreen() {
               {errors.correo ? <Text style={styles.error}>{errors.correo}</Text> : null}
 
               <View style={styles.passwordHeaderRow}>
-                <Text style={styles.fieldLabel}>Contrasena</Text>
-                <TouchableOpacity onPress={() => {}} activeOpacity={0.8} style={styles.forgotRow}>
-                  <Text style={styles.forgotText}>Olvidaste tu contrasena?</Text>
+                <Text style={styles.fieldLabel}>Contraseña</Text>
+                <TouchableOpacity 
+                  onPress={() => navigation.navigate('RecoverPassword')} 
+                  activeOpacity={0.8} 
+                  style={styles.forgotRow}
+                >
+                  <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
                 </TouchableOpacity>
               </View>
 
               <TextInput
                 value={password}
                 onChangeText={setPassword}
-                placeholder="minimo 6 caracteres"
+                placeholder="mínimo 6 caracteres"
                 placeholderTextColor={colors.textPlaceholder}
                 textColor={colors.textWhite}
                 secureTextEntry={!showPassword}
@@ -141,13 +145,13 @@ export default function LoginScreen() {
                   end={{ x: 1, y: 0 }}
                   style={styles.loginButton}
                 >
-                  <Text style={styles.loginButtonText}>{loading ? 'Cargando...' : 'Iniciar Sesion'}</Text>
+                  <Text style={styles.loginButtonText}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <View style={styles.dividerRow}>
                 <View style={styles.divider} />
-                <Text style={styles.dividerText}>No tienes cuenta?</Text>
+                <Text style={styles.dividerText}>¿No tienes cuenta?</Text>
                 <View style={styles.divider} />
               </View>
 

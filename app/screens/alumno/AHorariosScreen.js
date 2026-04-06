@@ -1,18 +1,54 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { colors } from '../../../styles/colors';
 import AlumnoTopBar from '../../components/AlumnoTopBar';
-import { getScheduleForDate } from '../../services/mockScheduleData';
+import { AuthContext } from '../../components/context/AuthContext';
+import { getAlumnoPerfilById } from '../../services/authDb';
+import { getScheduleForDate } from '../../services/scheduleDb';
 
 export default function AHorariosScreen() {
+  const { user } = useContext(AuthContext);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [grupo, setGrupo] = useState('');
+  const [scheduleInfo, setScheduleInfo] = useState({ diaHoy: '', fechaHoy: '', clases: [] });
   const [showPicker, setShowPicker] = useState(false);
 
-  const { diaHoy, fechaHoy, clases } = getScheduleForDate(selectedDate);
+  useEffect(() => {
+    const loadPerfil = async () => {
+      if (!user?.id) {
+        setGrupo('');
+        return;
+      }
+
+      const perfil = await getAlumnoPerfilById(user.id);
+      setGrupo(perfil?.grupo || user.grupo || '');
+    };
+
+    loadPerfil();
+  }, [user?.grupo, user?.id]);
+
+  useEffect(() => {
+    const loadSchedule = async () => {
+      const data = await getScheduleForDate(grupo, selectedDate);
+      setScheduleInfo(data);
+    };
+
+    loadSchedule();
+  }, [grupo, selectedDate]);
+
+  const { diaHoy, fechaHoy, clases } = scheduleInfo;
   const diaCapitalizado = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
+
+  const dayTitle = useMemo(() => {
+    if (!diaHoy) {
+      return 'Hoy';
+    }
+
+    return diaCapitalizado;
+  }, [diaCapitalizado, diaHoy]);
 
   // Funciones para cambiar de día con flechas
   const cambiarDia = (dias) => {
@@ -38,7 +74,7 @@ export default function AHorariosScreen() {
 
         <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.dayCenter}>
           <MaterialCommunityIcons name="calendar" size={24} color={colors.accent} />
-          <Text style={styles.dayText}>{diaCapitalizado} • {fechaHoy}</Text>
+          <Text style={styles.dayText}>{dayTitle} • {fechaHoy}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => cambiarDia(1)}>
@@ -64,8 +100,8 @@ export default function AHorariosScreen() {
       {clases.length === 0 ? (
         <View style={styles.emptyState}>
           <MaterialCommunityIcons name="calendar-alert" size={48} color={colors.textSecondary} />
-          <Text style={styles.emptyTitle}>No tienes clases este dia</Text>
-          <Text style={styles.emptyMessage}>Disfruta tu dia libre o revisa otro dia en el calendario.</Text>
+          <Text style={styles.emptyTitle}>No tienes clases este día</Text>
+          <Text style={styles.emptyMessage}>Disfruta tu día libre o revisa otro día en el calendario.</Text>
         </View>
       ) : (
         clases.map((clase, index) => (

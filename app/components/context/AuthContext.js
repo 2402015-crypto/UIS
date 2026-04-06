@@ -7,6 +7,9 @@ import {
   registerAuthUser,
   userExistsByCorreo,
 } from '../../services/authDb';
+import { initAdminContentDb } from '../../services/adminContentDb';
+import { initGradesDb } from '../../services/gradesDb';
+import { initScheduleDb } from '../../services/scheduleDb';
 
 export const AuthContext = createContext();
 
@@ -19,6 +22,9 @@ export const AuthProvider = ({ children }) => {
     const bootstrapAuth = async () => {
       try {
         await initAuthDb();
+        await initAdminContentDb();
+        await initGradesDb();
+        await initScheduleDb();
         await ensureDefaultAdmin();
         const carrerasData = await getCarrerasCatalog();
         setCarreras(carrerasData || []);
@@ -42,6 +48,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     setUser({
+      id: foundUser.id,
       nombre: foundUser.nombre,
       correo: foundUser.correo,
       matricula: foundUser.matricula,
@@ -71,7 +78,7 @@ export const AuthProvider = ({ children }) => {
     const exists = await userExistsByCorreo(correo);
 
     if (exists) {
-      return { ok: false, error: 'Ese correo ya esta registrado' };
+      return { ok: false, error: 'Ese correo ya está registrado' };
     }
 
     await registerAuthUser({

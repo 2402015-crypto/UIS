@@ -1,10 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { colors } from '../../../styles/colors';
-import AlumnoTopBar from '../../components/AlumnoTopBar';
+import MaestroTopBar from '../../components/MaestroTopBar';
 import { getAvisos, initAdminContentDb } from '../../services/adminContentDb';
 
 function getCategoriaStyles(categoria) {
@@ -20,7 +21,7 @@ function getCategoriaStyles(categoria) {
   return { bg: '#FDE8E8', text: '#B91C1C', label: 'urgente' };
 }
 
-export default function AAvisosScreen() {
+export default function MAvisosScreen() {
   const [filtro, setFiltro] = useState('todos');
   const [avisos, setAvisos] = useState([]);
 
@@ -45,23 +46,29 @@ export default function AAvisosScreen() {
     return avisos.filter((item) => item.categoria === filtro);
   }, [filtro, avisos]);
 
-  useEffect(() => {
-    const loadAvisos = async () => {
-      try {
-        await initAdminContentDb();
-        const data = await getAvisos();
-        setAvisos(data || []);
-      } catch {
-        setAvisos([]);
-      }
-    };
+  const loadAvisos = async () => {
+    try {
+      await initAdminContentDb();
+      const data = await getAvisos();
+      setAvisos(data || []);
+    } catch {
+      setAvisos([]);
+    }
+  };
 
+  useEffect(() => {
     loadAvisos();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadAvisos();
+    }, [])
+  );
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <AlumnoTopBar />
+      <MaestroTopBar />
 
       <Text style={styles.pageTitle}>Avisos y Anuncios</Text>
       <Text style={styles.pageSubtitle}>Mantente informado de las novedades</Text>
@@ -110,7 +117,7 @@ export default function AAvisosScreen() {
         <View style={styles.emptyCard}>
           <MaterialCommunityIcons name="bell-off-outline" size={36} color={colors.textPlaceholder} />
           <Text style={styles.emptyTitle}>Sin avisos</Text>
-          <Text style={styles.emptySubtitle}>Cuando existan avisos publicados apareceran aqui.</Text>
+          <Text style={styles.emptySubtitle}>Cuando existan avisos publicados aparecerán aquí.</Text>
         </View>
       ) : (
         avisosFiltrados.map((aviso) => {
@@ -159,7 +166,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     color: colors.textPrimary,
-    fontSize: 20,
+    fontSize: 40 / 2,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -187,7 +194,7 @@ const styles = StyleSheet.create({
   },
   urgentSubtitle: {
     color: '#B91C1C',
-    fontSize: 15,
+    fontSize: 30 / 2,
     marginLeft: 8,
     marginTop: 2,
   },
@@ -206,7 +213,7 @@ const styles = StyleSheet.create({
   },
   urgentInnerText: {
     color: '#4B5563',
-    fontSize: 16,
+    fontSize: 32 / 2,
     lineHeight: 25,
   },
   urgentFooterRow: {
@@ -239,7 +246,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     color: colors.textSecondary,
-    fontSize: 15,
+    fontSize: 30 / 2,
     fontWeight: '600',
   },
   filterTextActive: {
@@ -298,7 +305,7 @@ const styles = StyleSheet.create({
   noticeDescription: {
     color: colors.textSecondary,
     fontSize: 17,
-    lineHeight: 28,
+    lineHeight: 32 / 1.1,
     marginTop: 10,
   },
   noticeDivider: {

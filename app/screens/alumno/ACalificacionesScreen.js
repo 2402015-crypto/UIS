@@ -1,78 +1,134 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { colors } from '../../../styles/colors';
 import AlumnoTopBar from '../../components/AlumnoTopBar';
+import { AuthContext } from '../../components/context/AuthContext';
+import { getAttendanceForAlumno } from '../../services/attendanceDb';
+import { getGradesForAlumno } from '../../services/gradesDb';
 
 export default function ACalificacionesScreen() {
-    const [tabActivo, setTabActivo] = useState("calificaciones");
+    const { user } = useContext(AuthContext);
+    const [tabActivo, setTabActivo] = useState('calificaciones');
+    const [materias, setMaterias] = useState([]);
+    const [asistencias, setAsistencias] = useState([]);
 
-    // Datos simulados
-    const promedioGeneral = 88.2;
-    const porcentajeAsistencia = 67;
+    useEffect(() => {
+        const loadData = async () => {
+            if (!user?.id) {
+                setMaterias([]);
+                setAsistencias([]);
+                return;
+            }
 
-    const materias = [
-        {
-            nombre: "Programación Web",
-            profesor: "María García López",
-            calificaciones: { parcial1: 85, parcial2: 90, parcial3: 88, final: 88 },
-        },
-        {
-            nombre: "Base de Datos",
-            profesor: "Carlos Hernández",
-            calificaciones: { parcial1: 80, parcial2: 84, parcial3: 82, final: 83 },
-        },
-        {
-            nombre: "Desarrollo Móvil",
-            profesor: "Ana Pérez",
-            calificaciones: { parcial1: 92, parcial2: 95, parcial3: 90, final: 93 },
-        },
-    ];
+            const [gradesRows, attendanceRows] = await Promise.all([
+                getGradesForAlumno(user.id),
+                getAttendanceForAlumno(user.id, 80),
+            ]);
 
-    const asistencias = [
-        { materia: "Programación Web", fecha: "23 de marzo 2026", estado: "Asistencia" },
-        { materia: "Base de Datos", fecha: "23 de marzo 2026", estado: "Asistencia" },
-        { materia: "Desarrollo Móvil", fecha: "24 de marzo 2026", estado: "Retardo" },
-        { materia: "Programación Web", fecha: "25 de marzo 2026", estado: "Asistencia" },
-        { materia: "Ingeniería de Software", fecha: "26 de marzo 2026", estado: "Asistencia" },
-        { materia: "Base de Datos", fecha: "27 de marzo 2026", estado: "Falta" },
-    ];
+            const normalizedGrades = (gradesRows || []).map((row) => ({
+                nombre: row.grupo_id,
+                profesor: row.maestro_nombre || 'Profesor asignado',
+                calificaciones: {
+                    parcial1: row.unidad1,
+                    parcial2: row.unidad2,
+                    parcial3: row.unidad3,
+                    final: row.promedio,
+                },
+            }));
 
-    const resumenAsistencia = {
-        asistencias: asistencias.filter((item) => item.estado === "Asistencia").length,
-        retardos: asistencias.filter((item) => item.estado === "Retardo").length,
-        faltas: asistencias.filter((item) => item.estado === "Falta").length,
-    };
+            const normalizedAttendance = (attendanceRows || []).map((row) => ({
+                materia: row.grupo_id,
+                fecha: row.fecha,
+                estado: row.estado === 'presente' ? 'Asistencia' : row.estado === 'retardo' ? 'Retardo' : 'Falta',
+                profesor: row.maestro_nombre || 'Profesor asignado',
+            }));
+
+            setMaterias(normalizedGrades);
+            setAsistencias(normalizedAttendance);
+        };
+
+        loadData();
+    }, [user?.id]);
+
+    const promedioGeneral = useMemo(() => {
+        const finals = materias
+            .map((item) => Number(item.calificaciones.final))
+            .filter((value) => Number.isFinite(value));
+
+        if (finals.length === 0) {
+            return '--';
+        }
+
+        return (finals.reduce((acc, val) => acc + val, 0) / finals.length).toFixed(1);
+    }, [materias]);
+
+    const resumenAsistencia = useMemo(() => ({
+        asistencias: asistencias.filter((item) => item.estado === 'Asistencia').length,
+        retardos: asistencias.filter((item) => item.estado === 'Retardo').length,
+        faltas: asistencias.filter((item) => item.estado === 'Falta').length,
+    }), [asistencias]);
+
+    const porcentajeAsistencia = useMemo(() => {
+        if (asistencias.length === 0) {
+            return 0;
+        }
+
+        const presentes = asistencias.filter((item) => item.estado === 'Asistencia').length;
+        return Math.round((presentes / asistencias.length) * 100);
+    }, [asistencias]);
 
     const getEstadoConfig = (estado) => {
-        if (estado === "Asistencia") {
+        if (estado === 'Asistencia') {
             return {
-                icon: "check-circle-outline",
-                iconColor: "#16A34A",
-                badgeBg: "#DCFCE7",
-                badgeBorder: "#86EFAC",
-                badgeText: "#15803D",
+                icon: 'check-circle-outline',
+                iconColor: '#16A34A',
+                badgeBg: '#DCFCE7',
+                badgeBorder: '#86EFAC',
+                badgeText: '#15803D',
             };
         }
 
-        if (estado === "Retardo") {
+        if (estado === 'Retardo') {
             return {
-                icon: "clock-outline",
-                iconColor: "#B45309",
-                badgeBg: "#FEF3C7",
-                badgeBorder: "#FCD34D",
-                badgeText: "#B45309",
+                icon: 'clock-outline',
+                iconColor: '#B45309',
+                badgeBg: '#FEF3C7',
+                badgeBorder: '#FCD34D',
+                badgeText: '#B45309',
             };
         }
 
         return {
-            icon: "close-circle-outline",
-            iconColor: "#DC2626",
-            badgeBg: "#FEE2E2",
-            badgeBorder: "#FCA5A5",
-            badgeText: "#B91C1C",
+            icon: 'close-circle-outline',
+            iconColor: '#DC2626',
+            badgeBg: '#FEE2E2',
+            badgeBorder: '#FCA5A5',
+            badgeText: '#B91C1C',
         };
+    };
+
+    const formatGrade = (value) => {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? String(numeric) : '--';
+    };
+
+    const formatAttendanceDate = (value) => {
+        if (!value) {
+            return 'Fecha no disponible';
+        }
+
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat('es-MX', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+        }).format(parsed);
     };
 
     return (
@@ -123,39 +179,39 @@ export default function ACalificacionesScreen() {
             {tabActivo === "calificaciones" ? (
                 <>
                     {materias.map((materia, index) => (
-                        <View key={index} style={styles.materiaCard}>
+                        <View key={`${materia.nombre}-${index}`} style={styles.materiaCard}>
                             <Text style={styles.materiaNombre}>{materia.nombre}</Text>
                             <Text style={styles.materiaProfesor}>{materia.profesor}</Text>
 
                             <View style={styles.gradesRow}>
                                 <View style={styles.gradeBox}>
                                     <Text style={styles.gradeLabel}>Parcial 1</Text>
-                                    <Text style={styles.gradeValue}>{materia.calificaciones.parcial1}</Text>
+                                    <Text style={styles.gradeValue}>{formatGrade(materia.calificaciones.parcial1)}</Text>
                                 </View>
 
                                 <View style={styles.gradeBox}>
                                     <Text style={styles.gradeLabel}>Parcial 2</Text>
-                                    <Text style={styles.gradeValue}>{materia.calificaciones.parcial2}</Text>
+                                    <Text style={styles.gradeValue}>{formatGrade(materia.calificaciones.parcial2)}</Text>
                                 </View>
 
                                 <View style={styles.gradeBox}>
                                     <Text style={styles.gradeLabel}>Parcial 3</Text>
-                                    <Text style={styles.gradeValue}>{materia.calificaciones.parcial3}</Text>
+                                    <Text style={styles.gradeValue}>{formatGrade(materia.calificaciones.parcial3)}</Text>
                                 </View>
 
                                 <View style={styles.gradeBoxFinal}>
                                     <Text style={styles.gradeLabelFinal}>Final</Text>
-                                    <Text style={styles.gradeValueFinal}>{materia.calificaciones.final}</Text>
+                                    <Text style={styles.gradeValueFinal}>{formatGrade(materia.calificaciones.final)}</Text>
                                 </View>
                             </View>
 
-                            <Text style={styles.progressPercent}>{materia.calificaciones.final}%</Text>
+                            <Text style={styles.progressPercent}>{formatGrade(materia.calificaciones.final)}%</Text>
                             <View style={styles.progressTrack}>
                                 <View
                                     style={[
                                         styles.progressFill,
                                         {
-                                            width: `${Math.max(0, Math.min(100, materia.calificaciones.final))}%`,
+                                            width: `${Math.max(0, Math.min(100, Number(materia.calificaciones.final) || 0))}%`,
                                         },
                                     ]}
                                 />
@@ -167,7 +223,7 @@ export default function ACalificacionesScreen() {
                 <>
                     <View style={styles.asistenciasCard}>
                         <Text style={styles.asistenciasTitle}>Resumen de Asistencias</Text>
-                        <Text style={styles.asistenciasSubtitle}>Ultimas 6 clases registradas</Text>
+                        <Text style={styles.asistenciasSubtitle}>Últimas 6 clases registradas</Text>
 
                         <View style={styles.summaryRow}>
                             <View style={[styles.summaryBox, styles.summaryBoxSuccess]}>
@@ -190,11 +246,11 @@ export default function ACalificacionesScreen() {
                         </View>
 
                         {asistencias.map((item, index) => (
-                            <View key={index} style={styles.asistenciaRowCard}>
+                            <View key={`${item.materia}-${item.fecha}-${index}`} style={styles.asistenciaRowCard}>
                                 <MaterialCommunityIcons name="calendar-blank-outline" size={26} color="#8B95A5" />
                                 <View style={styles.asistenciaInfo}>
                                     <Text style={styles.asistenciaMateria}>{item.materia}</Text>
-                                    <Text style={styles.asistenciaDetalle}>{item.fecha}</Text>
+                                    <Text style={styles.asistenciaDetalle}>{formatAttendanceDate(item.fecha)}</Text>
                                 </View>
                                 <View
                                     style={[

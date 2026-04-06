@@ -38,13 +38,13 @@ export default function RegAlumnoScreen() {
     const e = {};
     if (!nombre) e.nombre = 'Ingresa tu nombre completo';
     if (!correo) e.correo = 'Ingresa tu correo';
-    else if (!/^\S+@\S+\.\S+$/.test(correo)) e.correo = 'Correo invalido';
-    if (!matricula) e.matricula = 'Ingresa tu matricula';
+    else if (!/^\S+@\S+\.\S+$/.test(correo)) e.correo = 'Correo inválido';
+    if (!matricula) e.matricula = 'Ingresa tu matrícula';
     if (!grupo) e.grupo = 'Ingresa tu grupo';
     if (!cuatrimestre) e.cuatrimestre = 'Selecciona tu cuatrimestre';
     if (!carrera) e.carrera = 'Selecciona tu carrera';
-    if (!password) e.password = 'Ingresa tu contrasena';
-    if (password !== confirmar) e.confirmar = 'Las contrasenas no coinciden';
+    if (!password) e.password = 'Ingresa tu contraseña';
+    if (password !== confirmar) e.confirmar = 'Las contraseñas no coinciden';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -152,7 +152,7 @@ export default function RegAlumnoScreen() {
             style={styles.picker}
             dropdownIconColor={colors.textPlaceholder}
           >
-            <Picker.Item label="Selecciona una opcion" value="" />
+            <Picker.Item label="Selecciona una opción" value="" />
             <Picker.Item label="1er Cuatrimestre" value="1" />
             <Picker.Item label="2do Cuatrimestre" value="2" />
             <Picker.Item label="3er Cuatrimestre" value="3" />
@@ -175,7 +175,7 @@ export default function RegAlumnoScreen() {
             style={styles.picker}
             dropdownIconColor={colors.textPlaceholder}
           >
-            <Picker.Item label="Selecciona una opcion" value="" />
+            <Picker.Item label="Selecciona una opción" value="" />
             {carreras.map((item) => (
               <Picker.Item key={item.codigo} label={item.nombre} value={item.codigo} />
             ))}
@@ -236,7 +236,7 @@ export default function RegAlumnoScreen() {
         <View style={styles.loginPromptRow}>
           <Text style={styles.link}>¿Ya tienes cuenta? </Text>
           <TouchableOpacity onPress={() => navigation.replace('Login')}>
-            <Text style={styles.linkAccent}>Inicia Sesion</Text>
+            <Text style={styles.linkAccent}>Inicia Sesión</Text>
           </TouchableOpacity>
         </View>
           </View>

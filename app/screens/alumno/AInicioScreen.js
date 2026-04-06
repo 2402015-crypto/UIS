@@ -1,27 +1,79 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useContext } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { colors } from '../../../styles/colors';
 import AlumnoTopBar from '../../components/AlumnoTopBar';
 import { AuthContext } from '../../components/context/AuthContext';
-import { getScheduleForDate } from '../../services/mockScheduleData';
+import { getAlumnoPerfilById } from '../../services/authDb';
+import { getAttendanceForAlumno } from '../../services/attendanceDb';
+import { getGradesForAlumno } from '../../services/gradesDb';
+import { getScheduleForDate } from '../../services/scheduleDb';
 
 export default function AInicioScreen() {
     const navigation = useNavigation();
     const { user } = useContext(AuthContext);
+    const [perfil, setPerfil] = useState(null);
+    const [promedioGeneral, setPromedioGeneral] = useState('--');
+    const [materiasCount, setMateriasCount] = useState(0);
+    const [scheduleInfo, setScheduleInfo] = useState({ diaHoy: '', fechaHoy: '', clases: [] });
+
+    useEffect(() => {
+        const loadData = async () => {
+            if (!user?.id) {
+                setPerfil(null);
+                setPromedioGeneral('--');
+                setMateriasCount(0);
+                setScheduleInfo({ diaHoy: '', fechaHoy: '', clases: [] });
+                return;
+            }
+
+            const [perfilRow, gradesRows, attendanceRows] = await Promise.all([
+                getAlumnoPerfilById(user.id),
+                getGradesForAlumno(user.id),
+                getAttendanceForAlumno(user.id, 80),
+            ]);
+
+            const schedule = await getScheduleForDate(perfilRow?.grupo || user.grupo, new Date());
+
+            const finales = (gradesRows || [])
+                .map((item) => Number(item.promedio))
+                .filter((value) => Number.isFinite(value));
+            const promedio = finales.length
+                ? (finales.reduce((acc, val) => acc + val, 0) / finales.length).toFixed(1)
+                : '--';
+
+            const materiasUnicas = new Set((gradesRows || []).map((item) => item.grupo_id)).size;
+
+            setPerfil(perfilRow || null);
+            setPromedioGeneral(promedio);
+            setMateriasCount(materiasUnicas);
+            setScheduleInfo({
+                ...schedule,
+                attendanceCount: (attendanceRows || []).length,
+            });
+        };
+
+        loadData();
+    }, [user?.grupo, user?.id]);
 
     const nombre = user?.nombre || 'Alumno';
     const carrera = user?.carreraNombre || user?.carrera || 'No definida';
-    const matricula = user?.matricula || 'Sin asignar';
-    const grupo = user?.grupo || 'Sin asignar';
-    const cuatrimestre = user?.cuatrimestre || 'Sin asignar';
+    const matricula = perfil?.matricula || user?.matricula || 'Sin asignar';
+    const grupo = perfil?.grupo || user?.grupo || 'Sin asignar';
+    const cuatrimestre = perfil?.cuatrimestre || user?.cuatrimestre || 'Sin asignar';
+    const aula = perfil?.aula || 'Sin asignar';
+    const tutor = perfil?.tutor || 'Sin asignar';
 
-    const { diaHoy, fechaHoy, clases } = getScheduleForDate(new Date());
-    const clasesHoy = clases;
+    const { diaHoy, fechaHoy, clases: clasesHoy } = scheduleInfo;
 
-    const diaCapitalizado = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
+    const diaCapitalizado = useMemo(() => {
+        if (!diaHoy) {
+            return 'Hoy';
+        }
+        return diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
+    }, [diaHoy]);
     const subtituloClases = `${diaCapitalizado} • ${
         clasesHoy.length === 0 ? 'Sin clases programadas' : `${clasesHoy.length} clases`
     }`;
@@ -42,12 +94,12 @@ export default function AInicioScreen() {
             <View style={styles.statsRow}>
                 <View style={styles.statCard}>
                     <MaterialCommunityIcons name="chart-line" size={26} color={colors.accent} style={styles.statIcon} />
-                    <Text style={styles.statValue}>88.2</Text>
+                    <Text style={styles.statValue}>{promedioGeneral}</Text>
                     <Text style={styles.statLabel}>Promedio General</Text>
                 </View>
                 <View style={styles.statCard}>
                     <MaterialCommunityIcons name="book-open-variant" size={26} color={colors.accent} style={styles.statIcon} />
-                    <Text style={styles.statValue}>5</Text>
+                    <Text style={styles.statValue}>{materiasCount}</Text>
                     <Text style={styles.statLabel}>Materias Cursadas</Text>
                 </View>
             </View>
@@ -58,8 +110,8 @@ export default function AInicioScreen() {
                 <Text style={styles.infoText}>Matrícula: {matricula}</Text>
                 <Text style={styles.infoText}>Grupo: {grupo}</Text>
                 <Text style={styles.infoText}>Cuatrimestre: {cuatrimestre}</Text>
-                <Text style={styles.infoText}>Aula: Por asignar</Text>
-                <Text style={styles.infoText}>Tutor Asignado: Por asignar</Text>
+                <Text style={styles.infoText}>Aula: {aula}</Text>
+                <Text style={styles.infoText}>Tutor Asignado: {tutor}</Text>
             </View>
 
             {/* Clases de hoy */}

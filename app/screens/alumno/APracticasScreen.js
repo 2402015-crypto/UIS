@@ -1,64 +1,16 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { colors } from '../../../styles/colors';
 import AlumnoTopBar from '../../components/AlumnoTopBar';
-
-const PRACTICAS_MOCK = [
-  {
-    id: 'p1',
-    titulo: 'Analista de Bases de Datos',
-    empresa: 'DataSystems Inc.',
-    descripcion: 'Practica profesional en administracion y optimizacion de bases de datos',
-    requisitos: ['SQL', 'MySQL o PostgreSQL', 'Analisis de datos', 'Excel avanzado'],
-    duracion: '4 meses',
-    horario: 'Lunes a Viernes 8:00 - 14:00',
-    aplicantes: 8,
-    cierreTexto: 'Cierra en 22 dias (19/4/2026)',
-    aplicado: false,
-  },
-  {
-    id: 'p2',
-    titulo: 'Desarrollador Frontend Jr.',
-    empresa: 'NovaSoft',
-    descripcion: 'Apoyo en desarrollo de interfaces web y mantenimiento de componentes UI',
-    requisitos: ['HTML/CSS', 'JavaScript', 'React basico'],
-    duracion: '5 meses',
-    horario: 'Lunes a Viernes 9:00 - 15:00',
-    aplicantes: 11,
-    cierreTexto: 'Cierra en 15 dias (12/4/2026)',
-    aplicado: false,
-  },
-  {
-    id: 'p3',
-    titulo: 'Soporte de Infraestructura',
-    empresa: 'InfraTech MX',
-    descripcion: 'Monitoreo de red, soporte tecnico y documentacion de incidencias',
-    requisitos: ['Redes', 'Windows/Linux', 'Atencion a usuarios'],
-    duracion: '3 meses',
-    horario: 'Lunes a Viernes 7:30 - 13:30',
-    aplicantes: 5,
-    cierreTexto: 'Cierra en 10 dias (7/4/2026)',
-    aplicado: false,
-  },
-  {
-    id: 'p4',
-    titulo: 'QA Tester',
-    empresa: 'Quality Labs',
-    descripcion: 'Ejecucion de pruebas funcionales y registro de bugs en sistema de seguimiento',
-    requisitos: ['Pruebas funcionales', 'Documentacion', 'Detalle y analisis'],
-    duracion: '4 meses',
-    horario: 'Lunes a Viernes 8:00 - 14:00',
-    aplicantes: 17,
-    cierreTexto: 'Cierra en 7 dias (4/4/2026)',
-    aplicado: false,
-  },
-];
+import { AuthContext } from '../../components/context/AuthContext';
+import { getPracticasForAlumno, initAdminContentDb, postularApractica } from '../../services/adminContentDb';
 
 export default function APracticasScreen() {
-  const [practicas, setPracticas] = useState(PRACTICAS_MOCK);
+  const { user } = useContext(AuthContext);
+  const [practicas, setPracticas] = useState([]);
   const [detalleId, setDetalleId] = useState(null);
 
   const detalleSeleccionado = useMemo(
@@ -68,7 +20,7 @@ export default function APracticasScreen() {
 
   const resumen = useMemo(() => {
     const postulaciones = practicas.filter((item) => item.aplicado).length;
-    const totalAplicantes = practicas.reduce((acc, item) => acc + item.aplicantes, 0);
+    const totalAplicantes = practicas.reduce((acc, item) => acc + (item.aplicantes || 0), 0);
     return {
       ofertas: practicas.length,
       postulaciones,
@@ -76,8 +28,32 @@ export default function APracticasScreen() {
     };
   }, [practicas]);
 
-  const postularAOferta = (id) => {
-    setPracticas((prev) => prev.map((item) => (item.id === id ? { ...item, aplicado: true } : item)));
+  const loadPracticas = async () => {
+    try {
+      await initAdminContentDb();
+      const data = await getPracticasForAlumno(user?.id || 0);
+      setPracticas(data || []);
+    } catch {
+      setPracticas([]);
+    }
+  };
+
+  useEffect(() => {
+    loadPracticas();
+  }, [user?.id]);
+
+  const postularAOferta = async (id) => {
+    try {
+      if (!user?.id) {
+        Alert.alert('Sesion', 'No se encontro la sesion del usuario.');
+        return;
+      }
+
+      await postularApractica(user.id, id);
+      await loadPracticas();
+    } catch {
+      Alert.alert('Error', 'No se pudo registrar tu postulacion.');
+    }
   };
 
   return (
@@ -104,7 +80,13 @@ export default function APracticasScreen() {
         <Text style={styles.metricLabel}>Total Aplicantes</Text>
       </View>
 
-      {practicas.map((oferta) => (
+      {practicas.length === 0 ? (
+        <View style={styles.emptyCard}>
+          <MaterialCommunityIcons name="briefcase-outline" size={36} color={colors.textPlaceholder} />
+          <Text style={styles.emptyTitle}>Sin ofertas publicadas</Text>
+          <Text style={styles.emptySubtitle}>Cuando Servicios Escolares publique ofertas apareceran aqui.</Text>
+        </View>
+      ) : practicas.map((oferta) => (
         <View key={oferta.id} style={[styles.offerCard, oferta.aplicado && styles.offerCardApplied]}>
           <View style={styles.offerHeaderRow}>
             <Text style={styles.offerTitle}>{oferta.titulo}</Text>
@@ -122,17 +104,17 @@ export default function APracticasScreen() {
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <MaterialCommunityIcons name="clock-outline" size={18} color={colors.textPlaceholder} />
-              <Text style={styles.metaText}>{oferta.duracion}</Text>
+              <Text style={styles.metaText}>{oferta.duracion || 'Sin duracion'}</Text>
             </View>
             <View style={styles.metaItem}>
               <MaterialCommunityIcons name="account-group-outline" size={18} color={colors.textPlaceholder} />
-              <Text style={styles.metaText}>{oferta.aplicantes} aplicantes</Text>
+              <Text style={styles.metaText}>{oferta.aplicantes || 0} aplicantes</Text>
             </View>
           </View>
 
           <View style={styles.metaItemSingle}>
             <MaterialCommunityIcons name="calendar-blank-outline" size={18} color={colors.textPlaceholder} />
-            <Text style={styles.metaText}>{oferta.cierreTexto}</Text>
+            <Text style={styles.metaText}>{oferta.modalidad || 'Modalidad por definir'}</Text>
           </View>
 
           <View style={styles.actionsRow}>
@@ -178,11 +160,11 @@ export default function APracticasScreen() {
             <View style={styles.modalFooter}>
               <View style={styles.modalFooterRow}>
                 <Text style={styles.modalFooterLabel}>Duracion:</Text>
-                <Text style={styles.modalFooterValue}>{detalleSeleccionado?.duracion}</Text>
+                <Text style={styles.modalFooterValue}>{detalleSeleccionado?.duracion || 'Por definir'}</Text>
               </View>
               <View style={styles.modalFooterRow}>
                 <Text style={styles.modalFooterLabel}>Horario:</Text>
-                <Text style={styles.modalFooterValue}>{detalleSeleccionado?.horario}</Text>
+                <Text style={styles.modalFooterValue}>{detalleSeleccionado?.horario || 'Por definir'}</Text>
               </View>
             </View>
           </View>
@@ -230,6 +212,27 @@ const styles = StyleSheet.create({
   metricLabel: {
     color: colors.textPlaceholder,
     fontSize: 16,
+  },
+  emptyCard: {
+    backgroundColor: '#162E4A',
+    borderWidth: 1,
+    borderColor: '#2B5B90',
+    borderRadius: 18,
+    paddingVertical: 24,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+  emptySubtitle: {
+    color: colors.textPlaceholder,
+    fontSize: 14,
+    marginTop: 2,
+    textAlign: 'center',
   },
   offerCard: {
     backgroundColor: '#162E4A',

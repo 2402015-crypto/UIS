@@ -9,13 +9,13 @@ import { AuthContext } from './context/AuthContext';
 
 const MENU_ITEMS = [
   { label: 'Inicio', route: 'Inicio', icon: 'home-outline' },
-  { label: 'Horarios', route: 'Horarios', icon: 'calendar-blank-outline' },
-  { label: 'Calificaciones', route: 'Calificaciones', icon: 'file-document-outline' },
-  { label: 'Prácticas', route: 'Prácticas', icon: 'briefcase-outline' },
+  { label: 'Usuarios', route: 'Usuarios', icon: 'account-multiple-outline' },
+  { label: 'Grupos', route: 'Grupos', icon: 'book-open-page-variant-outline' },
+  { label: 'Practicas', route: 'Practicas', icon: 'briefcase-outline' },
   { label: 'Avisos', route: 'Avisos', icon: 'bell-outline' },
 ];
 
-export default function AlumnoMenuDrawer({ visible, onClose }) {
+export default function ServiciosEMenuDrawer({ visible, onClose }) {
   const navigation = useNavigation();
   const route = useRoute();
   const { user, logout } = useContext(AuthContext);
@@ -38,13 +38,13 @@ export default function AlumnoMenuDrawer({ visible, onClose }) {
         <View style={styles.drawer}>
           <View style={styles.header}>
             <View style={styles.avatar}>
-              <MaterialCommunityIcons name="account-outline" size={28} color="#041E1E" />
+              <MaterialCommunityIcons name="shield-crown-outline" size={28} color="#041E1E" />
             </View>
 
             <View style={styles.userInfo}>
-              <Text style={styles.username}>{user?.nombre || 'alumno'}</Text>
-              <Text style={styles.userRole}>Alumno</Text>
-              <Text style={styles.userEmail}>{user?.correo || 'alumno@alumno.utm.mx'}</Text>
+              <Text style={styles.username}>{user?.nombre || 'Servicios Escolares'}</Text>
+              <Text style={styles.userRole}>Administrador</Text>
+              <Text style={styles.userEmail}>{user?.correo || 'servicios@uis.mx'}</Text>
             </View>
 
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -66,9 +66,7 @@ export default function AlumnoMenuDrawer({ visible, onClose }) {
                     size={23}
                     color={isActive ? '#052217' : colors.textSecondary}
                   />
-                  <Text style={[styles.menuText, isActive && styles.menuTextActive]}>
-                    {item.label}
-                  </Text>
+                  <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{item.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -76,7 +74,7 @@ export default function AlumnoMenuDrawer({ visible, onClose }) {
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <MaterialCommunityIcons name="logout" size={22} color="#FF5A6E" />
-            <Text style={styles.logoutText}>Cerrar Sesión</Text>
+            <Text style={styles.logoutText}>Cerrar Sesion</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -167,7 +165,7 @@ const styles = StyleSheet.create({
   },
   menuText: {
     color: colors.textSecondary,
-    fontSize: 30 / 2,
+    fontSize: 15,
     marginLeft: 12,
     fontWeight: '600',
   },
@@ -186,7 +184,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#FF5A6E',
-    fontSize: 30 / 2,
+    fontSize: 15,
     marginLeft: 10,
     fontWeight: '700',
   },

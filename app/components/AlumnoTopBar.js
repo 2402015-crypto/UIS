@@ -4,8 +4,14 @@ import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import AlumnoMenuDrawer from './AlumnoMenuDrawer';
 
-export default function AlumnoTopBar() {
+export default function AlumnoTopBar({ enableMenuDrawer = true, MenuDrawerComponent = AlumnoMenuDrawer }) {
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleMenuPress = () => {
+    if (enableMenuDrawer) {
+      setMenuVisible(true);
+    }
+  };
 
   return (
     <>
@@ -15,12 +21,14 @@ export default function AlumnoTopBar() {
           <Text style={styles.topBarTitle}>Sistema UIS</Text>
         </View>
 
-        <TouchableOpacity style={styles.menuButton} activeOpacity={0.8} onPress={() => setMenuVisible(true)}>
+        <TouchableOpacity style={styles.menuButton} activeOpacity={0.8} onPress={handleMenuPress}>
           <MaterialCommunityIcons name="menu" size={34} color="#E5ECF5" />
         </TouchableOpacity>
       </View>
 
-      <AlumnoMenuDrawer visible={menuVisible} onClose={() => setMenuVisible(false)} />
+      {enableMenuDrawer ? (
+        <MenuDrawerComponent visible={menuVisible} onClose={() => setMenuVisible(false)} />
+      ) : null}
     </>
   );
 }

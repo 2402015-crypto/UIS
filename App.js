@@ -5,11 +5,12 @@ import { Provider as PaperProvider } from 'react-native-paper';
 
 import { AuthContext, AuthProvider } from './app/components/context/AuthContext';
 import AlumnoNavigation from './app/screens/alumno_navigation'; // tabs del alumno
-import HomeScreen from './app/screens/home/HomeScreen'; // reservado para admin
 import LoginScreen from './app/screens/login/LoginScreen';
+import RecoverPasswordScreen from './app/screens/login/RecoverPasswordScreen';
+import MaestroNavigation from './app/screens/maestro_navigation';
 import RegAlumnoScreen from './app/screens/registros/RegAlumnoScreen';
 import RegMaestroScreen from './app/screens/registros/RegMaestroScreen';
-// import MaestroNavigation from './app/screens/maestro_navigation'; // si lo agregas
+import ServiciosENavigation from './app/screens/ServiciosE_navigation';
 
 import { colors } from './styles/colors';
 
@@ -36,11 +37,12 @@ function AppNavigator() {
       {!user ? (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="RecoverPassword" component={RecoverPasswordScreen} />
           <Stack.Screen name="RegAlumno" component={RegAlumnoScreen} />
           <Stack.Screen name="RegMaestro" component={RegMaestroScreen} />
         </>
       ) : user.role === 'admin' ? (
-        <Stack.Screen name="Admin" component={HomeScreen} />
+        <Stack.Screen name="Admin" component={ServiciosENavigation} />
       ) : user.role === 'alumno' ? (
         <Stack.Screen name="Alumno" component={AlumnoNavigation} />
       ) : (

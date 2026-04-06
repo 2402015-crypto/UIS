@@ -9,13 +9,13 @@ import { AuthContext } from './context/AuthContext';
 
 const MENU_ITEMS = [
   { label: 'Inicio', route: 'Inicio', icon: 'home-outline' },
-  { label: 'Horarios', route: 'Horarios', icon: 'calendar-blank-outline' },
-  { label: 'Calificaciones', route: 'Calificaciones', icon: 'file-document-outline' },
-  { label: 'Prácticas', route: 'Prácticas', icon: 'briefcase-outline' },
+  { label: 'Grupos', route: 'Grupos', icon: 'account-group-outline' },
+  { label: 'Calificaciones', route: 'Calificaciones', icon: 'clipboard-text-outline' },
+  { label: 'Asistencias', route: 'Asistencias', icon: 'file-document-outline' },
   { label: 'Avisos', route: 'Avisos', icon: 'bell-outline' },
 ];
 
-export default function AlumnoMenuDrawer({ visible, onClose }) {
+export default function MaestroMenuDrawer({ visible, onClose }) {
   const navigation = useNavigation();
   const route = useRoute();
   const { user, logout } = useContext(AuthContext);
@@ -38,13 +38,13 @@ export default function AlumnoMenuDrawer({ visible, onClose }) {
         <View style={styles.drawer}>
           <View style={styles.header}>
             <View style={styles.avatar}>
-              <MaterialCommunityIcons name="account-outline" size={28} color="#041E1E" />
+              <MaterialCommunityIcons name="account-tie-outline" size={28} color="#041E1E" />
             </View>
 
             <View style={styles.userInfo}>
-              <Text style={styles.username}>{user?.nombre || 'alumno'}</Text>
-              <Text style={styles.userRole}>Alumno</Text>
-              <Text style={styles.userEmail}>{user?.correo || 'alumno@alumno.utm.mx'}</Text>
+              <Text style={styles.username}>{user?.nombre || 'maestro'}</Text>
+              <Text style={styles.userRole}>Maestro</Text>
+              <Text style={styles.userEmail}>{user?.correo || 'maestro@alumno.utm.mx'}</Text>
             </View>
 
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -76,7 +76,7 @@ export default function AlumnoMenuDrawer({ visible, onClose }) {
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <MaterialCommunityIcons name="logout" size={22} color="#FF5A6E" />
-            <Text style={styles.logoutText}>Cerrar Sesión</Text>
+            <Text style={styles.logoutText}>Cerrar Sesion</Text>
           </TouchableOpacity>
         </View>
       </View>
