@@ -308,19 +308,30 @@ export async function createUserByAdmin({
   role,
 }) {
   const normalizedCorreo = correo.trim().toLowerCase();
+  const normalizedGrupo = normalizeNullableValue(grupo);
+  const normalizedCarrera = normalizeNullableValue(carrera);
+  const normalizedAula = normalizeNullableValue(aula);
+
+  if (role === 'alumno') {
+    await upsertGroupRecord(normalizedGrupo, normalizedCarrera, normalizedAula, tutor);
+  }
+
   return db.runAsync(
     `INSERT INTO usuarios (
-      nombre, correo, matricula, grupo, cuatrimestre, carrera, tutor, aula, password, role
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      nombre, correo, matricula, grupo, grupo_id, cuatrimestre, carrera, carrera_codigo, tutor, aula, aula_codigo, password, role
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
     [
       nombre || '',
       normalizedCorreo,
       matricula || '',
-      grupo || '',
+      normalizedGrupo,
+      normalizedGrupo,
       cuatrimestre || '',
-      carrera || '',
+      normalizedCarrera,
+      normalizedCarrera,
       tutor || '',
-      aula || '',
+      normalizedAula,
+      normalizedAula,
       password || '1234',
       role,
     ]

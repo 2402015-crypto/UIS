@@ -12,16 +12,6 @@ function normalizeNullableValue(value) {
   return normalized.length > 0 ? normalized : null;
 }
 
-const DEFAULT_SCHEDULE = [
-  { grupo: 'TI42', dia_semana: 1, nombre: 'Programación Web', hora_inicio: '07:00', hora_fin: '09:00', aula: 'Aula 1', profesor: 'Docente de TI', maestro_id: null },
-  { grupo: 'TI42', dia_semana: 3, nombre: 'Bases de Datos', hora_inicio: '08:00', hora_fin: '10:00', aula: 'Aula 2', profesor: 'Docente de TI', maestro_id: null },
-  { grupo: 'TI42', dia_semana: 5, nombre: 'Redes', hora_inicio: '10:00', hora_fin: '12:00', aula: 'Aula 3', profesor: 'Docente de TI', maestro_id: null },
-  { grupo: 'TI41', dia_semana: 2, nombre: 'Programación Web', hora_inicio: '09:00', hora_fin: '11:00', aula: 'Aula 4', profesor: 'Docente de TI', maestro_id: null },
-  { grupo: 'TI41', dia_semana: 4, nombre: 'Desarrollo Móvil', hora_inicio: '07:00', hora_fin: '09:00', aula: 'Aula 5', profesor: 'Docente de TI', maestro_id: null },
-  { grupo: 'TI43', dia_semana: 1, nombre: 'Base de Datos Avanzadas', hora_inicio: '11:00', hora_fin: '13:00', aula: 'Aula 6', profesor: 'Docente de TI', maestro_id: null },
-  { grupo: 'TI43', dia_semana: 3, nombre: 'Arquitectura de Software', hora_inicio: '07:00', hora_fin: '09:00', aula: 'Aula 7', profesor: 'Docente de TI', maestro_id: null },
-];
-
 export const DAY_OPTIONS = [
   { value: 1, label: 'Lun' },
   { value: 2, label: 'Mar' },
@@ -100,6 +90,50 @@ async function ensureGroupsFromHorarios() {
   }
 }
 
+async function removeLegacyDefaultSchedule() {
+  const legacyEntries = [
+    ['TI42', 1, 'Programación Web', '07:00', '09:00', 'Aula 1'],
+    ['TI42', 3, 'Bases de Datos', '08:00', '10:00', 'Aula 2'],
+    ['TI42', 5, 'Redes', '10:00', '12:00', 'Aula 3'],
+    ['TI41', 2, 'Programación Web', '09:00', '11:00', 'Aula 4'],
+    ['TI41', 4, 'Desarrollo Móvil', '07:00', '09:00', 'Aula 5'],
+    ['TI43', 1, 'Base de Datos Avanzadas', '11:00', '13:00', 'Aula 6'],
+    ['TI43', 3, 'Arquitectura de Software', '07:00', '09:00', 'Aula 7'],
+  ];
+
+  await db.withTransactionAsync(async () => {
+    for (const [grupo, diaSemana, nombre, horaInicio, horaFin, aula] of legacyEntries) {
+      await db.runAsync(
+        `DELETE FROM horarios
+         WHERE COALESCE(NULLIF(TRIM(grupo_id), ''), NULLIF(TRIM(grupo), '')) = ?
+           AND dia_semana = ?
+           AND nombre = ?
+           AND hora_inicio = ?
+           AND hora_fin = ?
+           AND COALESCE(NULLIF(TRIM(aula_codigo), ''), NULLIF(TRIM(aula), '')) = ?
+           AND COALESCE(NULLIF(TRIM(profesor), ''), '') = 'Docente de TI'
+           AND maestro_id IS NULL;`,
+        [grupo, diaSemana, nombre, horaInicio, horaFin, aula]
+      );
+    }
+
+    await db.runAsync(
+      `DELETE FROM grupos
+       WHERE id IN ('TI41', 'TI42', 'TI43')
+         AND NOT EXISTS (
+           SELECT 1
+           FROM usuarios u
+           WHERE COALESCE(NULLIF(TRIM(u.grupo_id), ''), NULLIF(TRIM(u.grupo), '')) = grupos.id
+         )
+         AND NOT EXISTS (
+           SELECT 1
+           FROM horarios h
+           WHERE COALESCE(NULLIF(TRIM(h.grupo_id), ''), NULLIF(TRIM(h.grupo), '')) = grupos.id
+         );`
+    );
+  });
+}
+
 async function getMaestroNombre(maestroId) {
   if (!maestroId) {
     return 'Sin docente';
@@ -144,27 +178,8 @@ export async function initScheduleDb() {
   `);
 
   await ensureHorariosColumns();
+  await removeLegacyDefaultSchedule();
   await ensureGroupsFromHorarios();
-
-  for (const item of DEFAULT_SCHEDULE) {
-    await db.runAsync(
-      `INSERT OR IGNORE INTO horarios (
-        grupo, grupo_id, dia_semana, nombre, hora_inicio, hora_fin, aula, aula_codigo, profesor, maestro_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      [
-        normalizeValue(item.grupo),
-        normalizeValue(item.grupo),
-        item.dia_semana,
-        item.nombre,
-        item.hora_inicio,
-        item.hora_fin,
-        item.aula,
-        item.aula,
-        item.profesor,
-        item.maestro_id,
-      ]
-    );
-  }
 }
 
 export async function getSchedulesByGroup(grupo) {

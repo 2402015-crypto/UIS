@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paleta de Colores - Sistema Escolar UIS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b1420 0%, #15283e 100%);
+            color: #f4f8ff;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 40px;
+            color: #2fd7a5;
+            text-shadow: 0 2px 10px rgba(47, 215, 165, 0.3);
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2fd7a5;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #24466d;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .color-card {
+            background: #15283e;
+            border: 1px solid #24466d;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .color-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(47, 215, 165, 0.2);
+        }
+
+        .color-sample {
+            width: 100%;
+            height: 140px;
+            border-bottom: 1px solid #24466d;
+        }
+
+        .color-info {
+            padding: 15px;
+        }
+
+        .color-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #f4f8ff;
+            margin-bottom: 8px;
+        }
+
+        .color-use {
+            font-size: 13px;
+            color: #d5e2f2;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .color-hex {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #2fd7a5;
+            font-weight: 600;
+            padding: 8px;
+            background: rgba(47, 215, 165, 0.1);
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .color-hex:hover {
+            background: rgba(47, 215, 165, 0.2);
+        }
+
+        .palette-showcase {
+            background: #15283e;
+            border: 1px solid #24466d;
+            border-radius: 12px;
+            padding: 40px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .palette-showcase h3 {
+            color: #2fd7a5;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .color-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .color-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f4f8ff;
+            font-weight: 600;
+            font-size: 11px;
+            text-align: center;
+            padding: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: #7f95b2;
+            font-size: 14px;
+            border-top: 1px solid #24466d;
+            margin-top: 60px;
+        }
+
+        .footer strong {
+            color: #2fd7a5;
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: #333;
+            }
+
+            h1, h2 {
+                color: #0b1420;
+            }
+
+            .color-card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Paleta de Colores</h1>
+        <h2 style="text-align: center; border: none; margin-bottom: 50px; font-size: 20px;">Sistema Escolar UIS</h2>
+
+        <!-- Fondos -->
+        <div class="section">
+            <h2>Fondos</h2>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-sample" style="background: #0b1420;"></div>
+                    <div class="color-info">
+                        <div class="color-name">background</div>
+                        <div class="color-use">Azul oscuro principal para fondos generales</div>
+                        <div class="color-hex">#0b1420</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #15283e;"></div>
+                    <div class="color-info">
+                        <div class="color-name">card</div>
+                        <div class="color-use">Azul gris oscuro medio para tarjetas y modales</div>
+                        <div class="color-hex">#15283e</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #0f2236;"></div>
+                    <div class="color-info">
+                        <div class="color-name">inputBackground</div>
+                        <div class="color-use">Azul oscuro para campos de entrada</div>
+                        <div class="color-hex">#0f2236</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bordes -->
+        <div class="section">
+            <h2>Bordes</h2>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-sample" style="background: #24466d;"></div>
+                    <div class="color-info">
+                        <div class="color-name">border</div>
+                        <div class="color-use">Azul grisáceo claro para bordes principales</div>
+                        <div class="color-hex">#24466d</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #214466;"></div>
+                    <div class="color-info">
+                        <div class="color-name">borderSecondary</div>
+                        <div class="color-use">Azul grisáceo alternativo para bordes secundarios</div>
+                        <div class="color-hex">#214466</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acentos -->
+        <div class="section">
+            <h2>Acentos (Verde Menta)</h2>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-sample" style="background: #2fd7a5;"></div>
+                    <div class="color-info">
+                        <div class="color-name">accent</div>
+                        <div class="color-use">Verde menta brillante para botones e iconos activos</div>
+                        <div class="color-hex">#2fd7a5</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #1ab386;"></div>
+                    <div class="color-info">
+                        <div class="color-name">accentHover</div>
+                        <div class="color-use">Verde menta oscuro para hover y estados presionados</div>
+                        <div class="color-hex">#1ab386</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #052217;"></div>
+                    <div class="color-info">
+                        <div class="color-name">accentDark</div>
+                        <div class="color-use">Verde muy oscuro para textos sobre fondos de acento</div>
+                        <div class="color-hex">#052217</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Texto -->
+        <div class="section">
+            <h2>Texto</h2>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-sample" style="background: #f4f8ff;"></div>
+                    <div class="color-info">
+                        <div class="color-name">textPrimary</div>
+                        <div class="color-use">Blanco azulado para títulos y texto principal</div>
+                        <div class="color-hex">#f4f8ff</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #ffffff;"></div>
+                    <div class="color-info">
+                        <div class="color-name">textWhite</div>
+                        <div class="color-use">Blanco puro para énfasis máximo</div>
+                        <div class="color-hex">#ffffff</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #d5e2f2;"></div>
+                    <div class="color-info">
+                        <div class="color-name">textSecondary</div>
+                        <div class="color-use">Gris azulado claro para subtítulos</div>
+                        <div class="color-hex">#d5e2f2</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #7f95b2;"></div>
+                    <div class="color-info">
+                        <div class="color-name">textPlaceholder</div>
+                        <div class="color-use">Gris azulado medio para placeholders</div>
+                        <div class="color-hex">#7f95b2</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estados -->
+        <div class="section">
+            <h2>Estados</h2>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-sample" style="background: #d4183d;"></div>
+                    <div class="color-info">
+                        <div class="color-name">error</div>
+                        <div class="color-use">Rojo oscuro para errores y alertas</div>
+                        <div class="color-hex">#d4183d</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #3b82f6;"></div>
+                    <div class="color-info">
+                        <div class="color-name">info</div>
+                        <div class="color-use">Azul informativo para mensajes</div>
+                        <div class="color-hex">#3b82f6</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #10b981;"></div>
+                    <div class="color-info">
+                        <div class="color-name">success</div>
+                        <div class="color-use">Verde éxito para confirmaciones</div>
+                        <div class="color-hex">#10b981</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-sample" style="background: #f59e0b;"></div>
+                    <div class="color-info">
+                        <div class="color-name">warning</div>
+                        <div class="color-use">Ámbar para advertencias</div>
+                        <div class="color-hex">#f59e0b</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Showcase -->
+        <div class="palette-showcase">
+            <h3>Vista Combinada</h3>
+            <div class="color-row">
+                <div class="color-box" style="background: #0b1420; border: 2px solid #2fd7a5;">Fondo</div>
+                <div class="color-box" style="background: #2fd7a5; color: #052217;">Acento</div>
+                <div class="color-box" style="background: #15283e;">Card</div>
+            </div>
+            <div class="color-row">
+                <div class="color-box" style="background: #d4183d;">Error</div>
+                <div class="color-box" style="background: #10b981; color: #0b1420;">Success</div>
+                <div class="color-box" style="background: #f59e0b; color: #0b1420;">Warning</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>Sistema Escolar UIS</strong><br>
+            Paleta diseñada para accesibilidad y contraste en dark mode<br>
+            Tema: Profesional, educativo, moderno y accesible
+        </div>
+    </div>
+</body>
+</html>
