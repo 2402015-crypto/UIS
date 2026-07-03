@@ -79,22 +79,3 @@ Entradas principales:
 1. `AuthProvider` inicializa tablas y catalogos.
 2. Cada modulo (`authDb`, `scheduleDb`, `gradesDb`, etc.) crea/actualiza su esquema.
 3. Las pantallas consumen funciones de `app/services` para leer/escribir en SQLite.
-
-## Estado Actual Relevante
-
-- Horarios sin seed por defecto.
-- Los grupos se forman dinamicamente en base a altas reales de alumnos y/o horarios definidos por admin.
-- Se mantiene compatibilidad con datos legacy mediante normalizacion en servicios.
-
-## Documentacion
-
-- `docs/migration_to_normalized_schema.sql`: script de migracion al esquema normalizado.
-
-## Sugerencia para Revision
-
-Para una revision funcional rapida:
-
-1. Iniciar app y validar login por rol.
-2. Crear alumno desde admin y confirmar alta de grupo.
-3. Crear horarios desde admin y validar consulta en alumno.
-4. Revisar asistencias/calificaciones en maestro.
